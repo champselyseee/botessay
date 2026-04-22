@@ -8,7 +8,7 @@ STARS_PRICE = 25
 
 # ── Белый список (username без @) ──
 WHITELIST = {
-    "твой_ник",       # замени на свой username
+    "riavlw",    
 }
 
 # ── База данных ──
@@ -161,7 +161,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             title="1 проверка ЕГЭ",
             description="Одна проверка сочинения, эссе или письма по критериям ЕГЭ 2026",
             payload="stars_1",
-            provider_token="",
             currency="XTR",
             prices=[LabeledPrice("1 проверка", STARS_PRICE)],
         )
@@ -172,9 +171,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             title="5 проверок ЕГЭ",
             description="Пять проверок сочинений, эссе или писем по критериям ЕГЭ 2026",
             payload="stars_5",
-            provider_token="",
             currency="XTR",
-            prices=[LabeledPrice("5 проверок", STARS_PRICE * 4)],
+            prices=[LabeledPrice("5 проверок", STARS_PRICE * 4)],  # скидка
         )
 
     elif query.data == "buy_card":
