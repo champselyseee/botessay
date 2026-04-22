@@ -85,7 +85,7 @@ def create_token(user_id: int) -> str:
     return token
 
 def validate_token(token: str) -> bool:
-    """Проверяет токен и помечает использованным"""
+    """Проверяет токен — действителен 30 минут, многоразовый"""
     con = sqlite3.connect("users.db")
     row = con.execute("SELECT used, created_at FROM tokens WHERE token = ?", (token,)).fetchone()
     if not row:
@@ -95,8 +95,6 @@ def validate_token(token: str) -> bool:
     if used or (int(time.time()) - created_at > 1800):
         con.close()
         return False
-    con.execute("UPDATE tokens SET used = 1 WHERE token = ?", (token,))
-    con.commit()
     con.close()
     return True
 
@@ -156,7 +154,7 @@ async def give_access(update: Update, context: ContextTypes.DEFAULT_TYPE, data: 
         asyncio.create_task(remove_keyboard_later(context, user_id))
 
 async def remove_keyboard_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
-    await asyncio.sleep(1860)
+    await asyncio.sleep(100)
     await context.bot.send_message(
         chat_id=chat_id,
         text="⏰ Проверки закончились. Купи ещё → /buy",
