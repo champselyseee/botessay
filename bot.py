@@ -11,7 +11,7 @@ STARS_MONTH = 220
 
 # ── Белый список (username без @) ──
 WHITELIST = {
-    "riavlw" "champselyseee",
+    "riavlw" ,"champselyseee" ,
 }
 
 # ── База данных ──
