@@ -4,7 +4,7 @@ import sqlite3, secrets, time, asyncio
 from aiohttp import web
 
 TELEGRAM_TOKEN = "8298157683:AAG8-TLkM4hpNZdOocWRqEr7BywKEc3rea0"
-WEB_APP_URL = "https://incomparable-mooncake-248c44.netlify.app"
+WEB_APP_URL = "https://steady-brioche-e0b7ee.netlify.app/"
 STARS_1 = 25
 STARS_5 = 100
 STARS_MONTH = 220
