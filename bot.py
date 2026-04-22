@@ -8,7 +8,7 @@ STARS_PRICE = 25
 
 # ── Белый список (username без @) ──
 WHITELIST = {
-    "riavlw",    
+    "riavlw",       # замени на свой username
 }
 
 # ── База данных ──
@@ -94,7 +94,7 @@ def send_webapp_button(token: str) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         [[KeyboardButton("✍️ Открыть проверку", web_app=WebAppInfo(url=url))]],
         resize_keyboard=True,
-        one_time_keyboard=True
+        one_time_keyboard=False
     )
 
 # ── /start ──
@@ -161,6 +161,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             title="1 проверка ЕГЭ",
             description="Одна проверка сочинения, эссе или письма по критериям ЕГЭ 2026",
             payload="stars_1",
+            provider_token="",
             currency="XTR",
             prices=[LabeledPrice("1 проверка", STARS_PRICE)],
         )
@@ -171,8 +172,9 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             title="5 проверок ЕГЭ",
             description="Пять проверок сочинений, эссе или писем по критериям ЕГЭ 2026",
             payload="stars_5",
+            provider_token="",
             currency="XTR",
-            prices=[LabeledPrice("5 проверок", STARS_PRICE * 4)],  # скидка
+            prices=[LabeledPrice("5 проверок", STARS_PRICE * 4)],
         )
 
     elif query.data == "buy_card":
