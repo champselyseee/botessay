@@ -1,9 +1,10 @@
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton, WebAppInfo, LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, PreCheckoutQueryHandler, MessageHandler, filters, CallbackQueryHandler
 import sqlite3, secrets, time, asyncio
+from aiohttp import web
 
 TELEGRAM_TOKEN = "8298157683:AAG8-TLkM4hpNZdOocWRqEr7BywKEc3rea0"
-WEB_APP_URL = "https://steady-brioche-e0b7ee.netlify.app/"
+WEB_APP_URL = "https://incomparable-mooncake-248c44.netlify.app"
 STARS_1 = 25
 STARS_5 = 100
 STARS_MONTH = 220
@@ -82,6 +83,22 @@ def create_token(user_id: int) -> str:
     con.commit()
     con.close()
     return token
+
+def validate_token(token: str) -> bool:
+    """Проверяет токен и помечает использованным"""
+    con = sqlite3.connect("users.db")
+    row = con.execute("SELECT used, created_at FROM tokens WHERE token = ?", (token,)).fetchone()
+    if not row:
+        con.close()
+        return False
+    used, created_at = row
+    if used or (int(time.time()) - created_at > 1800):
+        con.close()
+        return False
+    con.execute("UPDATE tokens SET used = 1 WHERE token = ?", (token,))
+    con.commit()
+    con.close()
+    return True
 
 def is_whitelisted(username: str) -> bool:
     if not username:
@@ -263,11 +280,34 @@ async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 init_db()
 
-app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("buy", buy))
-app.add_handler(CommandHandler("balance", balance))
-app.add_handler(CallbackQueryHandler(handle_callback))
-app.add_handler(PreCheckoutQueryHandler(pre_checkout))
-app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
-app.run_polling()
+# ── HTTP сервер для проверки токенов ──
+async def check_token(request):
+    token = request.rel_url.query.get("token", "")
+    if not token:
+        return web.json_response({"ok": False}, status=400)
+    valid = validate_token(token)
+    return web.json_response({"ok": valid})
+
+async def run_web():
+    server = web.Application()
+    server.router.add_get("/check_token", check_token)
+    runner = web.AppRunner(server)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 8080)
+    await site.start()
+
+async def main():
+    await run_web()
+    tg_app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    tg_app.add_handler(CommandHandler("start", start))
+    tg_app.add_handler(CommandHandler("buy", buy))
+    tg_app.add_handler(CommandHandler("balance", balance))
+    tg_app.add_handler(CallbackQueryHandler(handle_callback))
+    tg_app.add_handler(PreCheckoutQueryHandler(pre_checkout))
+    tg_app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
+    async with tg_app:
+        await tg_app.start()
+        await tg_app.updater.start_polling()
+        await asyncio.Event().wait()
+
+asyncio.run(main())
